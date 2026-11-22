@@ -1,0 +1,12 @@
+{
+  "domain": "lumalou",
+  "name": "Lumalou",
+  "codeowners": ["@niro1987"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/niro1987/lumalou-home-assistant",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "requirements": ["lumalou==0.2.0"],
+  "version": "0.1.0"
+}

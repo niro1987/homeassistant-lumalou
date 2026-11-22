@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Enter the Bluetooth address of your Lumalou device.",
+        "data": {
+          "address": "Bluetooth address"
+        }
+      }
+    },
+    "error": {
+      "invalid_address": "Enter a valid Bluetooth address."
+    },
+    "abort": {
+      "already_configured": "This Lumalou device is already configured."
+    }
+  }
+}
