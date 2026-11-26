@@ -7,7 +7,9 @@ The integration adds:
 - A cloud backlight light entity with on/off and brightness control, plus a
   separate color selector.
 - A media player for audio playback, source selection, and volume.
-- Automatic clock synchronization with Home Assistant's local time on every BLE connection.
+- A clock-format selector for 12-hour (AM/PM) or 24-hour display. The clock
+  syncs automatically on every BLE connection and every 24 hours while
+  connected.
 
 This project is independent and is not affiliated with or endorsed by Mattel or Fisher-Price.
 

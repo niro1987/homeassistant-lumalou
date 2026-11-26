@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from datetime import timedelta
 from typing import Any
 
@@ -28,6 +29,7 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=30)
+TIME_SYNC_INTERVAL = timedelta(hours=24)
 
 
 class _HomeAssistantBleakClient:
@@ -74,6 +76,7 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
         self.client: LumalouClient | None = None
         self._command_lock = asyncio.Lock()
         self._state_generation = 0
+        self._last_time_sync: float | None = None
 
     def _state_received(self, state: dict) -> None:
         """Track actual state notifications separately from cached timeout results."""
@@ -92,8 +95,13 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
 
         self.client = LumalouClient(device, on_state=self._state_received)
         await self.client.connect()
-        await self.client.sync_time(dt_util.now())
+        await self._async_sync_client_time(self.client)
         return self.client
+
+    async def _async_sync_client_time(self, client: LumalouClient) -> None:
+        """Sync time and record when the successful sync occurred."""
+        await client.sync_time(dt_util.now())
+        self._last_time_sync = time.monotonic()
 
     async def _async_update_data(self) -> dict:
         """Fetch a fresh device state."""
@@ -102,6 +110,12 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
                 client = self.client
                 if client is None or not client.connected:
                     client = await self._async_connect()
+                elif (
+                    self._last_time_sync is None
+                    or time.monotonic() - self._last_time_sync
+                    >= TIME_SYNC_INTERVAL.total_seconds()
+                ):
+                    await self._async_sync_client_time(client)
                 state_generation = self._state_generation
                 state = await client.request_state(timeout=10)
                 if self._state_generation == state_generation:
