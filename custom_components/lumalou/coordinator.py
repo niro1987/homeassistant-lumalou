@@ -110,10 +110,15 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
 
     async def async_send(self, command: bytes) -> None:
         """Send a library command and refresh the reported state."""
+        await self.async_send_sequence(command)
+
+    async def async_send_sequence(self, *commands: bytes) -> None:
+        """Send related commands before refreshing the reported state."""
         client = self.client
         if client is None or not client.connected:
             client = await self._async_connect()
-        await client.send(command)
+        for command in commands:
+            await client.send(command)
         await self.async_request_refresh()
 
     async def async_shutdown(self) -> None:

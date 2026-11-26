@@ -52,10 +52,14 @@ class LumalouLight(LumalouEntity, LightEntity):
         """Turn on the light, optionally setting its brightness."""
         brightness = kwargs.get("brightness")
         level = round(brightness * 9 / 255) if brightness is not None else None
-        await self.coordinator.async_send(
+        await self.coordinator.async_send_sequence(
+            commands.set_global_on(True),
             commands.set_global_state(lights_on=1, brightness=level)
         )
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the light."""
-        await self.coordinator.async_send(commands.set_global_state(lights_on=0))
+        await self.coordinator.async_send_sequence(
+            commands.set_global_state(lights_on=0),
+            commands.set_global_on(False),
+        )
