@@ -9,7 +9,12 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 from .coordinator import LumalouCoordinator
 
-PLATFORMS = (Platform.LIGHT, Platform.MEDIA_PLAYER, Platform.SELECT)
+PLATFORMS = (
+    Platform.BUTTON,
+    Platform.LIGHT,
+    Platform.MEDIA_PLAYER,
+    Platform.SELECT,
+)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

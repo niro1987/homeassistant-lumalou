@@ -10,7 +10,7 @@ from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from lumalou import Color, commands
+from lumalou import ClockFormat, Color, commands
 
 from .const import DOMAIN
 from .coordinator import LumalouCoordinator
@@ -19,6 +19,10 @@ from .entity import LumalouEntity
 _COLOR_OPTIONS = {
     color.name.replace("_", " ").title(): color for color in Color
 }
+_CLOCK_FORMAT_OPTIONS = {
+    "12-hour (AM/PM)": ClockFormat.H12,
+    "24-hour": ClockFormat.H24,
+}
 
 
 async def async_setup_entry(
@@ -26,9 +30,15 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Lumalou color selector."""
+    """Set up Lumalou selectors."""
     coordinator: LumalouCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([LumalouColorSelect(coordinator, entry.data[CONF_ADDRESS])])
+    address = entry.data[CONF_ADDRESS]
+    async_add_entities(
+        [
+            LumalouColorSelect(coordinator, address),
+            LumalouClockFormatSelect(coordinator, address),
+        ]
+    )
 
 
 class LumalouColorSelect(LumalouEntity, SelectEntity):
@@ -40,7 +50,7 @@ class LumalouColorSelect(LumalouEntity, SelectEntity):
         """Initialize the selector."""
         super().__init__(coordinator, address)
         self._attr_unique_id = f"{address.casefold()}_light_color"
-        self._attr_name = "Light color"
+        self._attr_name = "Star light color"
 
     @property
     def current_option(self) -> str | None:
@@ -55,4 +65,43 @@ class LumalouColorSelect(LumalouEntity, SelectEntity):
         """Set the light color."""
         await self.coordinator.async_send(
             commands.set_light_color(_COLOR_OPTIONS[option])
+        )
+
+
+class LumalouClockFormatSelect(LumalouEntity, SelectEntity):
+    """Select the clock's 12-hour or 24-hour display format."""
+
+    _attr_options: ClassVar[list[str]] = list(_CLOCK_FORMAT_OPTIONS)
+
+    def __init__(self, coordinator: LumalouCoordinator, address: str) -> None:
+        """Initialize the clock format selector."""
+        super().__init__(coordinator, address)
+        self._attr_unique_id = f"{address.casefold()}_clock_format"
+        self._attr_name = "Clock format"
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the currently configured clock format."""
+        try:
+            clock_format = ClockFormat(self.coordinator.data["clockFormat"])
+        except ValueError:
+            return None
+        return next(
+            (
+                option
+                for option, value in _CLOCK_FORMAT_OPTIONS.items()
+                if value == clock_format
+            ),
+            None,
+        )
+
+    async def async_select_option(self, option: str) -> None:
+        """Set the clock format without changing display or brightness settings."""
+        state = self.coordinator.data
+        await self.coordinator.async_send(
+            commands.set_clock_settings(
+                bool(state["clockDisplay"]),
+                state["clockBrightness"],
+                _CLOCK_FORMAT_OPTIONS[option],
+            )
         )
