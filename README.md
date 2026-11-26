@@ -10,15 +10,27 @@ The integration adds:
 
 This project is independent and is not affiliated with or endorsed by Mattel or Fisher-Price.
 
-## Install with HACS
+<!-- ha-marketplace:exclude-start -->
+## Install from the Home Assistant [Marketplace](https://contributors.home-assistant.io/marketplace/)
 
-1. Install and configure [HACS](https://www.hacs.xyz/docs/use/).
-2. In HACS, open **Integrations** and select **Custom repositories** from the menu.
-3. Add `https://github.com/niro1987/lumalou-home-assistant` with category **Integration**.
-4. Install **Lumalou**, then restart Home Assistant.
-5. In **Settings → Devices & services**, choose **Add integration** and search for **Lumalou**. If Bluetooth discovery finds the device, confirm it; otherwise enter its Bluetooth address.
+[![Open Lumalou in the Home Assistant Marketplace](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=niro1987&repository=homeassistant-lumalou&category=integration)
 
-The repository is HACS-compatible. To appear in HACS's default store, it still needs a successful HACS validation, a published GitHub release, and acceptance of a listing PR in [hacs/default](https://github.com/hacs/default).
+For Home Assistant 2026.11 and newer:
+
+1. Open the Marketplace link above and connect your GitHub account if prompted.
+2. Add this repository as a custom repository, then install **Lumalou**.
+3. Go to **Settings → Devices & services → Add integration** and search for **Lumalou**. Confirm the discovered device, or enter its Bluetooth address if it is not discovered.
+
+This repository is not yet in the shared Marketplace catalog, so use the link above to add it as a custom repository. On a first install, Home Assistant loads the config flow without a restart. See the [Marketplace guide for custom repositories](https://contributors.home-assistant.io/marketplace/guides/catalog/#the-link-to-your-repository) for details.
+
+### Older Home Assistant versions
+
+Before Home Assistant 2026.11, install through HACS:
+
+1. In HACS, open **Integrations → Custom repositories**.
+2. Add `https://github.com/niro1987/homeassistant-lumalou` with category **Integration**.
+3. Install **Lumalou**, restart Home Assistant, then add it under **Settings → Devices & services**.
+<!-- ha-marketplace:exclude-end -->
 
 ## Requirements
 
@@ -29,7 +41,7 @@ Home Assistant's Bluetooth integration manages adapters and discovery. Keep the 
 
 ## Development
 
-The integration is in `custom_components/lumalou`. The `lumalou` package implements the local BLE protocol and is installed by Home Assistant from PyPI. HACS and Hassfest validation run on pushes and pull requests.
+The integration is in `custom_components/lumalou`. The `lumalou` package implements the local BLE protocol and is installed by Home Assistant from PyPI. Marketplace uses the repository's `hacs.json` metadata; the HACS validation action and Hassfest run on pushes and pull requests. To list the repository in the shared Marketplace catalog, it must meet the [catalog requirements](https://contributors.home-assistant.io/marketplace/guides/catalog/#before-you-open-the-pull-request), including valid GitHub topics, passing validation, a published release, and an accepted listing PR in [hacs/default](https://github.com/hacs/default).
 
 ## License and attribution
 
