@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -74,7 +73,6 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
         )
         self.address = address
         self.client: LumalouClient | None = None
-        self._io_lock = asyncio.Lock()
 
     async def _async_connect(self) -> LumalouClient:
         """Connect through Home Assistant's Bluetooth adapter management."""
@@ -87,58 +85,36 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
                 "and ensure a connectable Bluetooth adapter is nearby."
             )
 
-        self.client = LumalouClient(device, on_state=self._handle_state_update)
+        self.client = LumalouClient(device)
         await self.client.connect()
         await self.client.sync_time(dt_util.now())
         return self.client
 
-    def _handle_state_update(self, state: dict) -> None:
-        """Publish device-initiated state updates without waiting for polling."""
-        self.async_set_updated_data(state)
-
     async def _async_update_data(self) -> dict:
         """Fetch a fresh device state."""
-        async with self._io_lock:
-            try:
-                client = self.client
-                if client is None or not client.connected:
-                    client = await self._async_connect()
-                state = await self._async_request_state(client)
-            except (
-                BleakError,
-                HomeAssistantError,
-                OSError,
-                TimeoutError,
-            ) + _LIBRARY_ERRORS as err:
-                raise UpdateFailed(f"Unable to communicate with Lumalou: {err}") from err
+        try:
+            client = self.client
+            if client is None or not client.connected:
+                client = await self._async_connect()
+            state = await client.request_state(timeout=10)
+        except (
+            BleakError,
+            HomeAssistantError,
+            OSError,
+            TimeoutError,
+        ) + _LIBRARY_ERRORS as err:
+            raise UpdateFailed(f"Unable to communicate with Lumalou: {err}") from err
         if state is None:
             raise UpdateFailed("Lumalou did not return its state")
         return state
 
     async def async_send(self, command: bytes) -> None:
-        """Send a command and immediately publish the resulting device state."""
-        async with self._io_lock:
-            client = self.client
-            if client is None or not client.connected:
-                client = await self._async_connect()
-            await client.send(command)
-            state = await self._async_request_state(client)
-            if state is None:
-                raise HomeAssistantError("Lumalou did not return its state")
-            self.async_set_updated_data(state)
-
-    async def _async_request_state(self, client: LumalouClient) -> dict | None:
-        """Read the current device state."""
-        return await client.request_state(timeout=10)
-
-    async def async_sync_time(self) -> None:
-        """Synchronize the device clock with Home Assistant's local time."""
-        async with self._io_lock:
-            client = self.client
-            if client is None or not client.connected:
-                await self._async_connect()
-            else:
-                await client.sync_time(dt_util.now())
+        """Send a library command and refresh the reported state."""
+        client = self.client
+        if client is None or not client.connected:
+            client = await self._async_connect()
+        await client.send(command)
+        await self.async_request_refresh()
 
     async def async_shutdown(self) -> None:
         """Close the active BLE session."""
