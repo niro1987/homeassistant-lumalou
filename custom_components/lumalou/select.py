@@ -30,7 +30,7 @@ async def async_setup_entry(
 
 
 class LumalouColorSelect(LumalouEntity, SelectEntity):
-    """Select the night light color."""
+    """Select the Lumalou light color."""
 
     _attr_options: ClassVar[list[str]] = list(_COLOR_OPTIONS)
 
@@ -38,7 +38,7 @@ class LumalouColorSelect(LumalouEntity, SelectEntity):
         """Initialize the selector."""
         super().__init__(coordinator, address)
         self._attr_unique_id = f"{address.casefold()}_light_color"
-        self._attr_name = "Star light color"
+        self._attr_name = "Light color"
 
     @property
     def current_option(self) -> str | None:
