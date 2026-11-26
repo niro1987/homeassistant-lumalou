@@ -96,10 +96,13 @@ class LumalouClockFormatSelect(LumalouEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         """Set the clock format without changing its display or brightness."""
         state = self.coordinator.data
-        await self.coordinator.async_send(
+        clock_format = _CLOCK_FORMAT_OPTIONS[option]
+        await self.coordinator.async_send_sequence(
             commands.set_clock_settings(
                 bool(state["clockDisplay"]),
                 state["clockBrightness"],
-                _CLOCK_FORMAT_OPTIONS[option],
-            )
+                clock_format,
+            ),
+            refresh=False,
+            optimistic_state={"clockFormat": int(clock_format)},
         )

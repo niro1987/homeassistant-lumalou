@@ -79,18 +79,33 @@ class LumalouMediaPlayer(LumalouEntity, MediaPlayerEntity):
 
     async def async_media_play(self) -> None:
         """Start the default sleep playlist."""
-        await self.coordinator.async_send(commands.play_audio(Audio.SLEEP_PLAYLIST))
+        await self.coordinator.async_send_sequence(
+            commands.play_audio(Audio.SLEEP_PLAYLIST),
+            refresh=False,
+            optimistic_state={"musicStatus": 1},
+        )
 
     async def async_media_stop(self) -> None:
         """Stop audio playback."""
-        await self.coordinator.async_send(commands.turn_off_audio())
+        await self.coordinator.async_send_sequence(
+            commands.turn_off_audio(),
+            refresh=False,
+            optimistic_state={"musicStatus": 0},
+        )
 
     async def async_set_volume_level(self, volume: float) -> None:
         """Set the device volume."""
-        await self.coordinator.async_send(commands.set_volume(round(volume * 9)))
+        level = round(volume * 9)
+        await self.coordinator.async_send_sequence(
+            commands.set_volume(level),
+            refresh=False,
+            optimistic_state={"currentVolume": level},
+        )
 
     async def async_select_source(self, source: str) -> None:
         """Start the selected audio source."""
-        await self.coordinator.async_send(
-            commands.play_audio(_AUDIO_SOURCES[source])
+        await self.coordinator.async_send_sequence(
+            commands.play_audio(_AUDIO_SOURCES[source]),
+            refresh=False,
+            optimistic_state={"musicStatus": 1},
         )
