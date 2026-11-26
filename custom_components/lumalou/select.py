@@ -16,9 +16,7 @@ from .const import DOMAIN
 from .coordinator import LumalouCoordinator
 from .entity import LumalouEntity
 
-_COLOR_OPTIONS = {
-    color.name.replace("_", " ").title(): color for color in Color
-}
+_COLOR_OPTIONS = {color.name.replace("_", " ").title(): color for color in Color}
 
 
 async def async_setup_entry(
@@ -40,7 +38,7 @@ class LumalouColorSelect(LumalouEntity, SelectEntity):
         """Initialize the selector."""
         super().__init__(coordinator, address)
         self._attr_unique_id = f"{address.casefold()}_light_color"
-        self._attr_name = "Light color"
+        self._attr_name = "Star light color"
 
     @property
     def current_option(self) -> str | None:
