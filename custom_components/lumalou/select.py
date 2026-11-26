@@ -61,8 +61,11 @@ class LumalouColorSelect(LumalouEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Set the light color."""
-        await self.coordinator.async_send(
-            commands.set_light_color(_COLOR_OPTIONS[option])
+        color = _COLOR_OPTIONS[option]
+        await self.coordinator.async_send_sequence(
+            commands.set_light_color(color),
+            refresh=False,
+            optimistic_state={"lightColor": int(color)},
         )
 
 
