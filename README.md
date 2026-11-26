@@ -5,7 +5,8 @@ Control a Fisher-Price Lumalou (`gld09`) locally over Bluetooth Low Energy. The 
 The integration adds:
 
 - Separate star light and cloud backlight entities.
-- Brightness control for both lights and a color selector for the star light.
+- On/off control for the cloud backlight, brightness control for the star light,
+  and a color selector for the star light.
 - A media player for audio playback, source selection, and volume.
 - Automatic clock synchronization with Home Assistant's local time on every BLE connection.
 

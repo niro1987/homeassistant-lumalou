@@ -36,9 +36,9 @@ async def async_setup_entry(
 class LumalouCloudBacklight(LumalouEntity, LightEntity):
     """Controllable cloud backlight on the Lumalou."""
 
-    _attr_color_mode: ClassVar[ColorMode] = ColorMode.BRIGHTNESS
+    _attr_color_mode: ClassVar[ColorMode] = ColorMode.ONOFF
     _attr_name = "Cloud backlight"
-    _attr_supported_color_modes: ClassVar[set[ColorMode]] = {ColorMode.BRIGHTNESS}
+    _attr_supported_color_modes: ClassVar[set[ColorMode]] = {ColorMode.ONOFF}
 
     def __init__(self, coordinator: LumalouCoordinator, address: str) -> None:
         """Initialize the light."""
@@ -50,22 +50,13 @@ class LumalouCloudBacklight(LumalouEntity, LightEntity):
         """Return whether the light is on."""
         return bool(self.coordinator.data["lightStatus"])
 
-    @property
-    def brightness(self) -> int:
-        """Return brightness on Home Assistant's 0-255 scale."""
-        return round(self.coordinator.data["lightBrightness"] * 255 / 9)
-
     async def async_turn_on(self, **kwargs) -> None:
-        """Turn on the light, optionally setting its brightness."""
-        brightness = kwargs.get("brightness")
-        level = round(brightness * 9 / 255) if brightness is not None else None
-        await self.coordinator.async_send(
-            commands.set_global_state(lights_on=1, brightness=level)
-        )
+        """Turn on the cloud backlight."""
+        await self.coordinator.async_send(commands.set_global_state(lights_on=1))
 
     async def async_turn_off(self, **kwargs) -> None:
-        """Turn off the light."""
-        await self.coordinator.async_send(commands.set_global_state(lights_on=0))
+        """Turn off only the cloud backlight."""
+        await self.coordinator.async_send(commands.turn_off_backlight())
 
 
 class LumalouStarLight(LumalouEntity, LightEntity):
@@ -96,20 +87,19 @@ class LumalouStarLight(LumalouEntity, LightEntity):
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on the star, optionally setting its brightness."""
         brightness = kwargs.get("brightness")
-        command_sequence = [commands.set_global_on(True)]
-        level: int | None = None
         if brightness is not None:
-            level = round(brightness * 9 / 255)
-            command_sequence.append(commands.set_led_brightness(level))
-
-        await self.coordinator.async_send_sequence(*command_sequence)
+            level = max(1, round(brightness * 9 / 255))
+        elif self._brightness is not None:
+            level = max(1, round(self._brightness * 9 / 255))
+        else:
+            level = 9
+        await self.coordinator.async_send(commands.set_led_brightness(level))
         self._is_on = True
-        if level is not None:
-            self._brightness = round(level * 255 / 9)
+        self._brightness = round(level * 255 / 9)
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the star without changing the cloud backlight."""
-        await self.coordinator.async_send(commands.set_global_on(False))
+        await self.coordinator.async_send(commands.set_led_brightness(0))
         self._is_on = False
         self.async_write_ha_state()
