@@ -6,7 +6,7 @@ from typing import ClassVar
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_ADDRESS
+from homeassistant.const import CONF_ADDRESS, EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -69,6 +69,7 @@ class LumalouColorSelect(LumalouEntity, SelectEntity):
 class LumalouClockFormatSelect(LumalouEntity, SelectEntity):
     """Select the clock's 12-hour or 24-hour display format."""
 
+    _attr_entity_category: ClassVar[EntityCategory] = EntityCategory.CONFIG
     _attr_options: ClassVar[list[str]] = list(_CLOCK_FORMAT_OPTIONS)
 
     def __init__(self, coordinator: LumalouCoordinator, address: str) -> None:
