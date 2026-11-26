@@ -7,6 +7,7 @@ The integration adds:
 - A light entity for power and brightness.
 - A color selector for the light's built-in colors.
 - A media player for audio playback, source selection, and volume.
+- Automatic clock synchronization with Home Assistant's local time on every BLE connection.
 
 This project is independent and is not affiliated with or endorsed by Mattel or Fisher-Price.
 

@@ -17,6 +17,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.util import dt as dt_util
 
 import lumalou
 import lumalou.client as lumalou_client
@@ -86,6 +87,7 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
 
         self.client = LumalouClient(device)
         await self.client.connect()
+        await self.client.sync_time(dt_util.now())
         return self.client
 
     async def _async_update_data(self) -> dict:
