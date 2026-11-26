@@ -73,6 +73,11 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
         self.address = address
         self.client: LumalouClient | None = None
         self._command_lock = asyncio.Lock()
+        self._state_generation = 0
+
+    def _state_received(self, state: dict) -> None:
+        """Track actual state notifications separately from cached timeout results."""
+        self._state_generation += 1
 
     async def _async_connect(self) -> LumalouClient:
         """Connect through Home Assistant's Bluetooth adapter management."""
@@ -85,7 +90,7 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
                 "and ensure a connectable Bluetooth adapter is nearby."
             )
 
-        self.client = LumalouClient(device)
+        self.client = LumalouClient(device, on_state=self._state_received)
         await self.client.connect()
         await self.client.sync_time(dt_util.now())
         return self.client
@@ -97,8 +102,10 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
                 client = self.client
                 if client is None or not client.connected:
                     client = await self._async_connect()
-                response = await client.request_named("global_state", timeout=10)
-                state = response.decode()
+                state_generation = self._state_generation
+                state = await client.request_state(timeout=10)
+                if self._state_generation == state_generation:
+                    raise UpdateFailed("Lumalou did not return a fresh state")
         except (
             BleakError,
             HomeAssistantError,
