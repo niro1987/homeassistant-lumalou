@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import voluptuous as vol
-
 from homeassistant import config_entries
+from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
 from homeassistant.const import CONF_ADDRESS
-from homeassistant.core import HomeAssistant, callback
 
 from .const import DOMAIN
 
@@ -17,7 +16,7 @@ class LumalouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input: dict | None = None):
-        """Ask for the device's Bluetooth address."""
+        """Set up a device by Bluetooth address."""
         errors: dict[str, str] = {}
         if user_input is not None:
             address = user_input[CONF_ADDRESS].strip()
@@ -37,21 +36,27 @@ class LumalouConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_bluetooth(
+        self, discovery_info: BluetoothServiceInfoBleak
+    ):
+        """Handle a device discovered by Home Assistant Bluetooth."""
+        await self.async_set_unique_id(discovery_info.address.casefold())
+        self._abort_if_unique_id_configured()
+        self.context["title_placeholders"] = {
+            "name": discovery_info.name or "Lumalou"
+        }
+        self._discovery_info = discovery_info
+        return await self.async_step_bluetooth_confirm()
 
-async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Keep the config flow module importable across HA versions."""
-    return True
+    async def async_step_bluetooth_confirm(self, user_input=None):
+        """Confirm setup of a discovered Lumalou."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title=self.context["title_placeholders"]["name"],
+                data={CONF_ADDRESS: self._discovery_info.address},
+            )
 
-
-@callback
-def async_get_options_flow(config_entry: config_entries.ConfigEntry):
-    """Return the options flow handler (reserved for future settings)."""
-    return LumalouOptionsFlow(config_entry)
-
-
-class LumalouOptionsFlow(config_entries.OptionsFlow):
-    """Options flow placeholder."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize the options flow."""
-        self.config_entry = config_entry
+        return self.async_show_form(
+            step_id="bluetooth_confirm",
+            description_placeholders=self.context["title_placeholders"],
+        )

@@ -1,12 +1,21 @@
 {
   "domain": "lumalou",
   "name": "Lumalou",
+  "bluetooth": [
+    {
+      "connectable": true,
+      "manufacturer_data_start": [77, 66],
+      "manufacturer_id": 950
+    }
+  ],
   "codeowners": ["@niro1987"],
   "config_flow": true,
-  "dependencies": [],
-  "documentation": "https://github.com/niro1987/lumalou-home-assistant",
+  "dependencies": ["bluetooth_adapters"],
+  "documentation": "https://github.com/niro1987/lumalou-home-assistant#readme",
   "integration_type": "device",
+  "issue_tracker": "https://github.com/niro1987/lumalou-home-assistant/issues",
   "iot_class": "local_polling",
+  "loggers": ["lumalou"],
   "requirements": ["lumalou==0.2.0"],
   "version": "0.1.0"
 }

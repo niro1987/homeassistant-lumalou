@@ -2,10 +2,14 @@
   "config": {
     "step": {
       "user": {
-        "description": "Enter the Bluetooth address of your Lumalou device.",
+        "description": "Enter the Bluetooth address of your Lumalou device. Bluetooth discovery is preferred when available.",
         "data": {
           "address": "Bluetooth address"
         }
+      },
+      "bluetooth_confirm": {
+        "title": "Lumalou discovered",
+        "description": "Do you want to set up {name}?"
       }
     },
     "error": {
