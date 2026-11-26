@@ -82,7 +82,7 @@ class LumalouMediaPlayer(LumalouEntity, MediaPlayerEntity):
         await self.coordinator.async_send_sequence(
             commands.play_audio(Audio.SLEEP_PLAYLIST),
             refresh=False,
-            optimistic_state={"musicStatus": 1},
+            optimistic_state={"musicStatus": 1, "lightStatus": 1},
         )
 
     async def async_media_stop(self) -> None:
@@ -107,5 +107,5 @@ class LumalouMediaPlayer(LumalouEntity, MediaPlayerEntity):
         await self.coordinator.async_send_sequence(
             commands.play_audio(_AUDIO_SOURCES[source]),
             refresh=False,
-            optimistic_state={"musicStatus": 1},
+            optimistic_state={"musicStatus": 1, "lightStatus": 1},
         )
