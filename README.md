@@ -11,6 +11,11 @@ The integration adds:
   syncs automatically on every BLE connection and every 24 hours while
   connected.
 
+The `0.2.1-beta.1` test build also includes temporary **Master power on/off
+(test)** buttons. These send a device-wide soother command and may affect the
+backlight or audio; they are diagnostic controls, not independent star-light
+controls.
+
 This project is independent and is not affiliated with or endorsed by Mattel or Fisher-Price.
 
 <!-- ha-marketplace:exclude-start -->

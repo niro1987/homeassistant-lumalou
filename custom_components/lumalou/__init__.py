@@ -10,6 +10,7 @@ from .const import DOMAIN
 from .coordinator import LumalouCoordinator
 
 PLATFORMS = (
+    Platform.BUTTON,
     Platform.LIGHT,
     Platform.MEDIA_PLAYER,
     Platform.SELECT,
