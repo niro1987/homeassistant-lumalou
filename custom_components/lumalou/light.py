@@ -52,7 +52,10 @@ class LumalouCloudBacklight(LumalouEntity, LightEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on the cloud backlight."""
-        await self.coordinator.async_send(commands.set_global_state(lights_on=1))
+        await self.coordinator.async_send_sequence(
+            commands.set_global_on(True),
+            commands.set_global_state(lights_on=1),
+        )
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off only the cloud backlight."""
