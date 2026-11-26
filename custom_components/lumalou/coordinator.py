@@ -14,12 +14,16 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from lumalou import LumalouClient, LumalouError
+import lumalou
+from lumalou import LumalouClient
 
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=30)
+_LIBRARY_ERRORS = (
+    (lumalou.LumalouError,) if hasattr(lumalou, "LumalouError") else ()
+)
 
 
 class LumalouCoordinator(DataUpdateCoordinator[dict]):
@@ -48,7 +52,7 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
             )
 
         self.client = LumalouClient(device)
-        await self.client.connect(timeout=20)
+        await self.client.connect()
         return self.client
 
     async def _async_update_data(self) -> dict:
@@ -57,15 +61,17 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
             client = self.client
             if client is None or not client.connected:
                 client = await self._async_connect()
-            return (await client.request_named("global_state", timeout=10)).decode()
+            state = await client.request_state(timeout=10)
         except (
             BleakError,
-            LumalouError,
             HomeAssistantError,
             OSError,
             TimeoutError,
-        ) as err:
+        ) + _LIBRARY_ERRORS as err:
             raise UpdateFailed(f"Unable to communicate with Lumalou: {err}") from err
+        if state is None:
+            raise UpdateFailed("Lumalou did not return its state")
+        return state
 
     async def async_send(self, command: bytes) -> None:
         """Send a library command and refresh the reported state."""
