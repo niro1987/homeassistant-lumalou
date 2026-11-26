@@ -42,7 +42,7 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
 
     async def _async_connect(self) -> LumalouClient:
         """Connect through Home Assistant's Bluetooth adapter management."""
-        device = await bluetooth.async_ble_device_from_address(
+        device = bluetooth.async_ble_device_from_address(
             self.hass, self.address, connectable=True
         )
         if device is None:
