@@ -18,5 +18,5 @@
   "issue_tracker": "https://github.com/niro1987/lumalou-home-assistant/issues",
   "loggers": ["lumalou"],
   "requirements": ["lumalou==0.2.0"],
-  "version": "0.2.0-beta.4"
+  "version": "0.2.0"
 }
