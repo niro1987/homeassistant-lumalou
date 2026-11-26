@@ -54,6 +54,11 @@ class LumalouCloudBacklight(LumalouEntity, LightEntity):
         """Turn on the cloud backlight, optionally setting its brightness."""
         brightness = kwargs.get("brightness")
         level = max(1, round(brightness * 9 / 255)) if brightness is not None else None
+        if self.is_on:
+            if level is not None:
+                await self.coordinator.async_send(commands.set_led_brightness(level))
+            return
+
         await self.coordinator.async_send_sequence(
             commands.set_global_on(True),
             commands.set_global_state(lights_on=1, brightness=level),

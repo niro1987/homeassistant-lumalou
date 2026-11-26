@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -55,9 +56,7 @@ class _HomeAssistantBleakClient:
 # lumalou 0.2.0 hard-codes BleakClient and has no client-factory option.
 lumalou_client.BleakClient = _HomeAssistantBleakClient
 
-_LIBRARY_ERRORS = (
-    (lumalou.LumalouError,) if hasattr(lumalou, "LumalouError") else ()
-)
+_LIBRARY_ERRORS = (lumalou.LumalouError,) if hasattr(lumalou, "LumalouError") else ()
 
 
 class LumalouCoordinator(DataUpdateCoordinator[dict]):
@@ -73,6 +72,7 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
         )
         self.address = address
         self.client: LumalouClient | None = None
+        self._command_lock = asyncio.Lock()
 
     async def _async_connect(self) -> LumalouClient:
         """Connect through Home Assistant's Bluetooth adapter management."""
@@ -93,10 +93,12 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
     async def _async_update_data(self) -> dict:
         """Fetch a fresh device state."""
         try:
-            client = self.client
-            if client is None or not client.connected:
-                client = await self._async_connect()
-            state = await client.request_state(timeout=10)
+            async with self._command_lock:
+                client = self.client
+                if client is None or not client.connected:
+                    client = await self._async_connect()
+                response = await client.request_named("global_state", timeout=10)
+                state = response.decode()
         except (
             BleakError,
             HomeAssistantError,
@@ -114,11 +116,12 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
 
     async def async_send_sequence(self, *commands: bytes) -> None:
         """Send related commands before refreshing the reported state."""
-        client = self.client
-        if client is None or not client.connected:
-            client = await self._async_connect()
-        for command in commands:
-            await client.send(command)
+        async with self._command_lock:
+            client = self.client
+            if client is None or not client.connected:
+                client = await self._async_connect()
+            for command in commands:
+                await client.send(command)
         await self.async_request_refresh()
 
     async def async_shutdown(self) -> None:
