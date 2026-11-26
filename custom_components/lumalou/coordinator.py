@@ -121,15 +121,25 @@ class LumalouCoordinator(DataUpdateCoordinator[dict]):
         """Send a library command and refresh the reported state."""
         await self.async_send_sequence(command)
 
-    async def async_send_sequence(self, *commands: bytes) -> None:
-        """Send related commands before refreshing the reported state."""
+    async def async_send_sequence(
+        self,
+        *commands: bytes,
+        refresh: bool = True,
+        optimistic_state: dict[str, Any] | None = None,
+    ) -> None:
+        """Send related commands, optionally publish state, then refresh."""
         async with self._command_lock:
             client = self.client
             if client is None or not client.connected:
                 client = await self._async_connect()
             for command in commands:
                 await client.send(command)
-        await self.async_request_refresh()
+            if optimistic_state is not None:
+                if self.data is None:
+                    raise UpdateFailed("Lumalou state is not available")
+                self.async_set_updated_data({**self.data, **optimistic_state})
+        if refresh:
+            await self.async_request_refresh()
 
     async def async_shutdown(self) -> None:
         """Close the active BLE session."""

@@ -62,8 +62,17 @@ class LumalouCloudBacklight(LumalouEntity, LightEntity):
         await self.coordinator.async_send_sequence(
             commands.set_global_on(True),
             commands.set_global_state(lights_on=1, brightness=level),
+            refresh=False,
+            optimistic_state={
+                "lightStatus": 1,
+                **({"lightBrightness": level} if level is not None else {}),
+            },
         )
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off only the cloud backlight."""
-        await self.coordinator.async_send(commands.turn_off_backlight())
+        await self.coordinator.async_send_sequence(
+            commands.turn_off_backlight(),
+            refresh=False,
+            optimistic_state={"lightStatus": 0},
+        )
