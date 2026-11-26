@@ -30,6 +30,7 @@ async def async_setup_entry(
 class LumalouLight(LumalouEntity, LightEntity):
     """Controllable night light on the Lumalou."""
 
+    _attr_color_mode: ClassVar[ColorMode] = ColorMode.BRIGHTNESS
     _attr_supported_color_modes: ClassVar[set[ColorMode]] = {ColorMode.BRIGHTNESS}
 
     def __init__(self, coordinator: LumalouCoordinator, address: str) -> None:

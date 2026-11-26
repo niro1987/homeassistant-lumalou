@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from typing import Any
 
+from bleak import BleakClient
+from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
+from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -15,12 +19,41 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 import lumalou
+import lumalou.client as lumalou_client
 from lumalou import LumalouClient
 
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=30)
+
+
+class _HomeAssistantBleakClient:
+    """Use Home Assistant's retry-aware connector for the Lumalou library."""
+
+    def __init__(self, device: BLEDevice) -> None:
+        """Store the device for connection through Home Assistant."""
+        self._device = device
+        self._client: BleakClient | None = None
+
+    async def connect(self) -> None:
+        """Connect with Home Assistant's Bluetooth retry handling."""
+        self._client = await establish_connection(
+            BleakClientWithServiceCache,
+            self._device,
+            self._device.name or "Lumalou",
+        )
+
+    def __getattr__(self, name: str) -> Any:
+        """Delegate GATT operations to the connected Bleak client."""
+        if self._client is None:
+            raise AttributeError(name)
+        return getattr(self._client, name)
+
+
+# lumalou 0.2.0 hard-codes BleakClient and has no client-factory option.
+lumalou_client.BleakClient = _HomeAssistantBleakClient
+
 _LIBRARY_ERRORS = (
     (lumalou.LumalouError,) if hasattr(lumalou, "LumalouError") else ()
 )
