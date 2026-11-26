@@ -11,10 +11,12 @@ The integration adds:
   syncs automatically on every BLE connection and every 24 hours while
   connected.
 
-The `0.2.1-beta.1` test build also includes temporary **Master power on/off
-(test)** buttons. These send a device-wide soother command and may affect the
+The `0.2.1-beta.2` test build includes temporary configuration buttons for
+testing the device-wide master power, global light state, direct cloud-backlight
+off, and LED brightness commands independently. These commands may affect the
 backlight or audio; they are diagnostic controls, not independent star-light
-controls.
+controls. The existing **Light color** selector tests the separate color
+command.
 
 This project is independent and is not affiliated with or endorsed by Mattel or Fisher-Price.
 
